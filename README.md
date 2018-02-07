@@ -1,2 +1,2 @@
 # pure_cnn
-A pure implementation of Convolutional Neural Network in python and javascript
+A pure implementation of Convolutional Neural Network in python and javascript with no dependencies.

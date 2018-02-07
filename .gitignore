@@ -1,0 +1,11 @@
+# Python
+.idea/
+*.pyc
+*.log
+.pypirc
+test/
+dist/
+build/
+
+# Javascript
+node_modules/

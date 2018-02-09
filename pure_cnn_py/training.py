@@ -1,4 +1,5 @@
 import cv2
+import json
 import random
 from pure_cnn_py.util.constant import \
     LAYER_CONV, \
@@ -8,6 +9,9 @@ from pure_cnn_py.util.constant import \
     ACTIVATION_SOFTMAX
 from pure_cnn_py.model.model import PureCnn
 from pure_cnn_py.util.image_data import ImageData
+
+from pure_cnn_py.util.image_manipulation import write_image_from_image_data, \
+    show_image_from_image_data
 
 
 class Training(object):
@@ -127,6 +131,7 @@ class Training(object):
 
                 self.epoch += 1
                 print(self.example_seen, self.iter, self.model.training_error, accuracy)
+                self.save_model("./model.json")
             else:
                 break
 
@@ -175,6 +180,69 @@ class Training(object):
                 if guess == image_label_list[m]:
                     correct += 1
         return correct / 10
+
+    def save_model(self, filename):
+        if self.model is None:
+            raise Exception("No model found.")
+
+        model_dict = {
+            "layers": [],
+            "example_seen": self.example_seen,
+            "mini_batch_size": self.mini_batch_size,
+            "momentum": self.model.momentum,
+            "learning_rate": self.model.learning_rate,
+            "l2": self.model.l2,
+        }
+
+        for layer in self.model.layers:
+            layer_dict = {
+                "name": layer.name,
+                "type": layer.layer_type,
+                "index": layer.layer_index
+            }
+
+            if layer.layer_type == LAYER_INPUT:
+                layer_dict["width"] = layer.output_shape.width
+                layer_dict["height"] = layer.output_shape.height
+                layer_dict["depth"] = layer.output_shape.depth
+            elif layer.layer_type == LAYER_CONV:
+                layer_dict["units"] = layer.units
+                layer_dict["weight"] = []
+                layer_dict["kernel_width"] = layer.kernel_width
+                layer_dict["kernel_height"] = layer.kernel_height
+                layer_dict["kernel_stride_x"] = layer.kernel_stride_x
+                layer_dict["kernel_stride_y"] = layer.kernel_stride_y
+                layer_dict["pad_x"] = layer.pad_x
+                layer_dict["pad_y"] = layer.pad_y
+
+                for j in range(0, layer.units):
+                    layer_dict["weight"].append(layer.kernel[j].get_value())
+
+                layer_dict["biases"] = layer.biases
+
+            elif layer.layer_type == LAYER_MAXPOOL:
+                layer_dict["pool_width"] = layer.pool_width
+                layer_dict["pool_height"] = layer.pool_height
+                layer_dict["pool_stride_x"] = layer.pool_stride_x
+                layer_dict["pool_stride_y"] = layer.pool_stride_y
+
+            elif layer.layer_type == LAYER_FULLY_CONNECTED:
+                layer_dict["units"] = layer.units
+                layer_dict["weight"] = []
+                layer_dict["activation"] = layer.activation
+
+                for j in range(0, layer.units):
+                    layer_dict["weight"].append(layer.weights[j].get_value())
+
+                layer_dict["biases"] = layer.biases
+
+            else:
+                raise Exception("No such layer type {0} supported.".format(layer.layer_type))
+
+            model_dict["layers"].append(layer_dict)
+
+        with open(filename, "w") as f:
+            f.writelines(json.dumps(model_dict))
 
 
 if __name__ == '__main__':

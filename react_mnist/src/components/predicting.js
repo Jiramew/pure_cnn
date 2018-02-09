@@ -1,6 +1,6 @@
 import React from 'react';
 import PureCnn from '../model/model';
-import model_predict from '../model/mnist.json';
+import model_predict from '../model/model.json';
 import {LAYER_CONV, LAYER_FULLY_CONNECTED} from '../util/constant';
 
 class PureCnnPredicting extends React.Component {

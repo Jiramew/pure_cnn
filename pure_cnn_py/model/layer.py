@@ -14,6 +14,7 @@ class Layer(object):
         self.input_shape = None
 
         self.layer_index = None
+        self.layer_type = None
 
     def is_last_layer(self):
         return self.next_layer is None

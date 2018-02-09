@@ -15,7 +15,7 @@ class FCLayer(Layer):
         self.output_shape = MatShape(1, 1, units)
         self.activation = activation
 
-        self.weight = [0] * units
+        self.weights = [0] * units
         self.biases = [0] * units
 
         self.weight_grad = [0] * units
@@ -30,7 +30,7 @@ class FCLayer(Layer):
     def set_input_layer(self, input_layer):
         super(FCLayer, self).set_input_layer(input_layer)
         for i in range(0, self.units):
-            self.weight[i] = Mat(self.input_shape, INIT_RANDN)
+            self.weights[i] = Mat(self.input_shape, INIT_RANDN)
             self.weight_grad[i] = Mat(self.input_shape, INIT_ZEROS)
 
     def set_output_layer(self, output_layer):
@@ -38,7 +38,7 @@ class FCLayer(Layer):
 
     def set_params(self, weight, bias):
         for i in range(0, self.units):
-            self.weight[i].set_value(weight[i])
+            self.weights[i].set_value(weight[i])
 
         self.biases = bias
 
@@ -53,7 +53,7 @@ class FCLayer(Layer):
 
             for j in range(0, self.units):
                 for k in range(0, size):
-                    self.output[i].value[j] += self.weight[j].value[k] * self.input[i].value[k]
+                    self.output[i].value[j] += self.weights[j].value[k] * self.input[i].value[k]
 
                 self.output[i].value[j] += self.biases[j]
 
@@ -80,13 +80,13 @@ class FCLayer(Layer):
                 self.weight_grad[j].operation_add_scaled_mat(grad, self.input[i])
                 self.biases_grad[j] += grad
 
-                self.back_error[i].operation_add_scaled_mat(error, self.weight[j])
+                self.back_error[i].operation_add_scaled_mat(error, self.weights[j])
 
     def batch_update(self):
         l2_regularization = 1 - self.network.batch_learning_rate * self.network.l2
 
         for j in range(0, self.units):
-            self.weight[j].operation_scale_and_add_mat(l2_regularization, self.weight_grad[j])
+            self.weights[j].operation_scale_and_add_mat(l2_regularization, self.weight_grad[j])
             self.biases[j] += self.biases_grad[j]
 
             self.weight_grad[j].operation_scale_mat(self.network.momentum)
